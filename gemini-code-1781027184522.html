@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LO3 Tiered Difficulty Quiz (15 Questions)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 30px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            border-bottom: 3px solid #16a085;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 18pt;
+        }
+        .status-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .difficulty-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 9.5pt;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-easy { background-color: #2ecc71; }
+        .badge-medium { background-color: #f39c12; }
+        .badge-hard { background-color: #e74c3c; }
+        .status-text {
+            font-weight: bold;
+            color: #7f8c8d;
+            font-size: 11pt;
+        }
+        .question-box {
+            display: none;
+        }
+        .question-box.active {
+            display: block;
+        }
+        .question-text {
+            font-size: 12.5pt;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+        .option-label {
+            display: block;
+            background-color: #fdfefe;
+            border: 2px solid #bdc3c7;
+            padding: 11px 16px;
+            margin-bottom: 8px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 11pt;
+            transition: all 0.2s;
+        }
+        .option-label:hover {
+            background-color: #eaeded;
+        }
+        .option-label input {
+            margin-right: 10px;
+            transform: scale(1.1);
+        }
+        .option-label.correct {
+            background-color: #d4efdf !important;
+            border-color: #27ae60 !important;
+            color: #196f3d;
+            font-weight: bold;
+        }
+        .option-label.incorrect {
+            background-color: #fadbd8 !important;
+            border-color: #cd6155 !important;
+            color: #78281f;
+        }
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: 7px;
+            border-left: 5px solid;
+            font-size: 11pt;
+        }
+        .explanation-box.correct-style {
+            background-color: #e8f8f5;
+            border-color: #16a085;
+            color: #117864;
+        }
+        .explanation-box.incorrect-style {
+            background-color: #fdf2e9;
+            border-color: #e67e22;
+            color: #a04000;
+        }
+        .amh-text {
+            font-family: 'Nyala', sans-serif;
+            margin-top: 6px;
+            border-top: 1px dashed #bdc3c7;
+            padding-top: 6px;
+            color: #566573;
+        }
+        .nav-buttons {
+            margin-top: 20px;
+            text-align: right;
+        }
+        button {
+            padding: 9px 22px;
+            font-size: 11.5pt;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            background-color: #16a085;
+            color: white;
+            transition: background-color 0.2s;
+        }
+        button:hover {
+            background-color: #117864;
+        }
+        .btn-next {
+            background-color: #2e4053;
+        }
+        .btn-next:hover {
+            background-color: #1c2833;
+        }
+        .score-screen {
+            display: none;
+            text-align: center;
+            padding: 30px 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>LO3: Starting an Enterprise (Tiered Difficulty)</h1>
+    
+    <div id="quiz-ui">
+        <div class="status-container">
+            <div id="diff-badge" class="difficulty-badge badge-easy">EASY</div>
+            <div class="status-text">Question <span id="idx-txt">1</span> of 15</div>
+        </div>
+        <div id="questions-container"></div>
+        <div class="nav-buttons">
+            <button id="action-btn" onclick="checkAnswer()">Submit Answer</button>
+        </div>
+    </div>
+
+    <div id="score-screen" class="score-screen">
+        <h2>Exam Simulation Completed!</h2>
+        <p style="font-size: 24pt; font-weight: bold; color: #16a085;"><span id="final-score">0</span> / 15</p>
+        <p id="final-msg" style="font-size: 12pt; color: #566573; margin-bottom: 20px;"></p>
+        <button onclick="window.location.reload()">Restart Quiz</button>
+    </div>
+</div>
+
+<script>
+const quizData = [
+    // === LEVEL 1: EASY QUESTIONS (5 Questions) ===
+    {
+        q: "Which business structure is legally owned and operated by only one single individual person?",
+        a: ["Partnership", "Share Company", "Cooperative", "Sole Proprietorship"],
+        c: 3, // D
+        level: "EASY",
+        eng: "A sole proprietorship is the simplest business entity, owned and managed entirely by one person.",
+        amh: "ግለሰብ ባለቤትነት (Sole Proprietorship) በአንድ ሰው ብቻ የሚመራና የሚተዳደር ቀላሉ የንግድ አይነት ነው።"
+    },
+    {
+        q: "What type of business entity requires a written contractual agreement between two or more co-owners to share profits and liabilities?",
+        a: ["Partnership", "Sole Proprietorship", "Public Corporation", "State Enterprise"],
+        c: 0, // A
+        level: "EASY",
+        eng: "A partnership is formed when two or more individuals agree contractually to operate a business together.",
+        amh: "ሁለት ወይም ከዚያ በላይ የሆኑ ሰዎች ካፒታላቸውንና ክህሎታቸውን አስተባብረው ለመስራት ሲስማሙ ሽርክና (Partnership) ይባላል።"
+    },
+    {
+        q: "What is the primary written document that serves as a roadmap, detailing the goals and future operation plans of a new business?",
+        a: ["Tax Receipt", "Bank Passbook", "Business Plan", "Attendance Sheet"],
+        c: 2, // C
+        level: "EASY",
+        eng: "A business plan is a comprehensive formal document outlining the startup's targets and execution strategies.",
+        amh: "የንግድ እቅድ (Business Plan) የአንድን አዲስ ንግድ አላማዎች እና የፋይናንስ እቅዶችን በዝርዝር የሚያሳይ የተጻፈ ሰነድ ነው።"
+    },
+    {
+        q: "An enterprise that purchases finished goods from vendors and resells them to users without modifying the physical items is a:",
+        a: ["Manufacturing Enterprise", "Agricultural Firm", "Service Enterprise", "Merchandise Enterprise"],
+        c: 3, // D
+        level: "EASY",
+        eng: "Merchandise firms trade ready-made goods to consumers without making any production alterations.",
+        amh: "የሸቀጥ ንግድ ድርጅት (Merchandise Enterprise) የተጠናቀቁ እቃዎችን ገዝቶ ያለ ምንም ቅርፅ ለውጥ በቀጥታ ለደንበኞች የሚሸጥ ነው።"
+    },
+    {
+        q: "What component of capital refers to personal savings or capital brought in directly by the owners that carries no fixed debt repayment obligations?",
+        a: ["Equity Capital", "Bank Overdraft", "Commercial Loan", "Suppliers Credit"],
+        c: 0, // A
+        level: "EASY",
+        eng: "Equity capital constitutes the owners' own contributions or personal financial funds invested into the startup.",
+        amh: "የራስ ካፒታል (Equity Capital) ከግል ቁጠባ ወይም ከባለቤቶች የሚገኝ ገንዘብ ሲሆን የወለድ ክፍያ ግዴታ የለበትም።"
+    },
+
+    // === LEVEL 2: MEDIUM QUESTIONS (5 Questions) ===
+    {
+        q: "Which form of capital is specifically dedicated to handling short-term day-to-day survival expenses, including raw material purchases and staff salaries?",
+        a: ["Fixed Capital", "Depreciation Reserve", "Working Capital", "Share Capital"],
+        c: 2, // C
+        level: "MEDIUM",
+        eng: "Working capital handles the highly liquid immediate daily operational expenses before revenues are recovered.",
+        amh: "የስራ ማስኬጃ ካፒታል (Working Capital) ማለት የዕለት ተዕለት ወጪዎችን (ደሞዝ፣ ጥሬ እቃ) ለመሸፈን የሚያስፈልግ ፈሳሽ ገንዘብ ነው።"
+    },
+    {
+        q: "The reduction in the accountant's book value of a physical asset over its lifespan due to continuous physical usage and wear is called:",
+        a: ["Depreciation", "Inflation", "Appreciation", "Market Liquidation"],
+        c: 0, // A
+        level: "MEDIUM",
+        eng: "Depreciation is the gradual accounting allocation of a fixed asset's total purchase value over its useful active years.",
+        amh: "የማምረቻ መሳሪያዎች ወይም መኪናዎች አገልግሎት በመስጠታቸው ምክንያት በየአመቱ የሚያጡት የዋጋ ቅናሽ እርጅና/ቅናሽ (Depreciation) ይባላል።"
+    },
+    {
+        q: "The opening balance sheet generated on the first formal baseline day of an enterprise is specifically designed to register:",
+        a: ["Monthly tax refunds", "Annual net profits", "Daily sales turnovers", "Assets, liabilities, and owner equity"],
+        c: 3, // D
+        level: "MEDIUM",
+        eng: "The opening balance sheet displays the primary accounting baseline statement (Assets = Liabilities + Equity) on Day 1.",
+        amh: "በመጀመሪያው የስራ ቀን የሚዘጋጀው ጅማሮ ሚዛን (Opening Balance Sheet) የድርጅቱን ንብረት፣ እዳ እና የባለቤት ድርሻ ይመዘግባል።"
+    },
+    {
+        q: "An enterprise that takes dynamic raw materials and uses manual labor or complex machines to fabricate completely new physical items is a:",
+        a: ["Merchandise Shop", "Manufacturing Enterprise", "Consulting Agency", "Service Brokerage"],
+        c: 1, // B
+        level: "MEDIUM",
+        eng: "Manufacturing entities transform raw primary inputs into new tangible finished commercial outputs.",
+        amh: "የማምረቻ ኢንተርፕራይዝ (Manufacturing) ጥሬ እቃዎችን ወደ ተጠናቀቁና ለፍጆታ ወደሚመቹ ተጨባጭ ምርቶች የሚቀይር ነው።"
+    },
+    {
+        q: "In accounting, how is the absolute 'Gross Profit' calculated correctly inside a trading firm's income record?",
+        a: ["Net Profit minus Total Tax Paid", "Total Sales Revenue minus Cost of Goods Sold", "Fixed Assets minus Current Assets", "Cash Inflow minus Cash Outflow"],
+        c: 1, // B
+        level: "MEDIUM",
+        eng: "Gross profit represents the direct baseline difference between total net sales revenue and the direct costs of goods sold (COGS).",
+        amh: "ጠቅላላ ትርፍ (Gross Profit) የሚሰላው ከአጠቃላይ የሽያጭ ገቢ ላይ የእቃዎቹን ቀጥተኛ መግዣ ወጪ (Cost of Goods Sold) በመቀነስ ነው።"
+    },
+
+    // === LEVEL 3: HARD QUESTIONS (5 Questions) ===
+    {
+        q: "Why is 'Unlimited Liability' considered a profound structural hazard for an entrepreneur launching a Sole Proprietorship?",
+        a: ["It forces the firm to allocate heavy equity shares to foreign lenders.", "The entrepreneur becomes personally vulnerable to losing private assets to satisfy business debts.", "It blocks the owner from obtaining structural micro-enterprise licenses.", "It mandates double-taxation on all recorded physical inventory assets."],
+        c: 1, // B
+        level: "HARD",
+        eng: "Unlimited liability creates a legal reality where personal non-business assets can be legally liquidated to resolve business defaults.",
+        amh: "የባለቤትነት ያልተገደበ እዳ (Unlimited Liability) ማለት የድርጅቱ እዳ ከቁጥጥር ውጭ ሲሆን የግል የቤትና የባንክ ንብረቶች ተወርሰው እዳ እንዲከፍሉ መደረጉ ነው።"
+    },
+    {
+        q: "When evaluating project risk frameworks, which critical dimension describes the internal psychological drive, alignment, and willpower of an entrepreneur?",
+        a: ["External Resources", "Technical Competency", "Motivation and Determination", "Idea and Market fit"],
+        c: 2, // C
+        level: "HARD",
+        eng: "Motivation and determination relate strictly to the internal psychological resilience required to absorb early operational shocks.",
+        amh: "ለስራ ስኬት ወሳኝ የሆነው የስራ ፈጣሪው የውስጥ የስነ-ልቦና ጥንካሬ፣ ተነሳሽነትና ፅናት Motivation and Determination ይባላል።"
+    },
+    {
+        q: "What is the primary technical objective of drafting a comprehensive 'Cash Flow Plan' inside a young business plan?",
+        a: ["To automatically eliminate corporate competition", "To calculate annual machinery depreciation values", "To secure business tax exemption parameters", "To project timing of cash inflows and outflows to avoid insolvency"],
+        c: 3, // D
+        level: "HARD",
+        eng: "A cash flow plan maps out fluid cash positions over specific timelines to ensure the entity maintains continuous technical liquidity.",
+        amh: "የገንዘብ ፍሰት እቅድ (Cash Flow Plan) ዋና አላማ ወደ ድርጅት የሚገባውንና የሚወጣውን ፈሳሽ ገንዘብ በጊዜ ሰሌዳ አስልቶ ድርጅቱ በገንዘብ እጥረት እንዳይዘጋ መከላከል ነው።"
+    },
+    {
+        q: "Under accounting guidelines, how do you derive the exact 'Net Profit' of an operational business entity?",
+        a: ["Deduct all operational expenses and income taxes from Gross Profit", "Multiply the baseline Cost of Goods Sold by total seasonal production outputs", "Add Current Liabilities back into the Opening Balance Sheet reserves", "Subtract Fixed Capital depreciation from the Cash Flow forecast accounts"],
+        c: 0, // A
+        level: "HARD",
+        eng: "Net profit is the final accounting residue determined after subtracting all running operational costs and government taxes from Gross Profit.",
+        amh: "የተጣራ ትርፍ (Net Profit) የሚገኘው ከአጠቃላይ ትርፍ (Gross Profit) ላይ ሁሉንም የስራ ማስኬጃ ወጪዎች እና የመንግስት ታክስ/ግብር ሲቀነስ ነው።"
+    },
+    {
+        q: "An entrepreneur borrows capital from an institution that demands formal monthly repayments backed by legal collateral. What type of financing is this?",
+        a: ["Equity Financing", "Retained Earnings investment", "Debt Financing", "Angel Venture Financing"],
+        c: 2, // C
+        level: "HARD",
+        eng: "Debt financing represents interest-bearing borrowed funds secured through external financing sources requiring explicit collateral pledges.",
+        amh: "የብድር ፋይናንስ (Debt Financing) ማለት ከውጭ የፋይናንስ ተቋማት በየወሩ በወለድ እንዲመለስ እና በንብረት ማስያዣ (Collateral) የሚገኝ ካፒታል ነው።"
+    }
+];
+
+let currentIndex = 0;
+let userScore = 0;
+let answered = false;
+let selectedOptionIndex = null;
+
+const badgeClasses = {
+    "EASY": "difficulty-badge badge-easy",
+    "MEDIUM": "difficulty-badge badge-medium",
+    "HARD": "difficulty-badge badge-hard"
+};
+
+function initQuiz() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+    
+    quizData.forEach((data, index) => {
+        let qBox = document.createElement('div');
+        qBox.id = `q-box-${index}`;
+        qBox.className = `question-box ${index === 0 ? 'active' : ''}`;
+        
+        let qText = document.createElement('div');
+        qText.className = 'question-text';
+        qText.innerText = `${index + 1}. ${data.q}`;
+        qBox.appendChild(qText);
+        
+        data.a.forEach((opt, optIdx) => {
+            let label = document.createElement('label');
+            label.className = 'option-label';
+            label.id = `label-${index}-${optIdx}`;
+            
+            let radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = `question-${index}`;
+            radio.onclick = function() { if(!answered) selectedOptionIndex = optIdx; };
+            
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(opt));
+            qBox.appendChild(label);
+        });
+        
+        let expBox = document.createElement('div');
+        expBox.id = `exp-${index}`;
+        expBox.className = 'explanation-box';
+        expBox.innerHTML = `<strong>Feedback:</strong> <div id="eng-${index}"></div><div class="amh-text" id="amh-${index}"></div>`;
+        qBox.appendChild(expBox);
+        
+        container.appendChild(qBox);
+    });
+    updateHeader();
+}
+
+function checkAnswer() {
+    if (answered) {
+        goToNext();
+        return;
+    }
+    
+    if (selectedOptionIndex === null) {
+        alert("Please select an option! / እባክዎ መጀመሪያ መልስ ይምረጡ!");
+        return;
+    }
+    
+    answered = true;
+    const currentQuestion = quizData[currentIndex];
+    const isCorrect = (selectedOptionIndex === currentQuestion.c);
+    
+    document.getElementById(`label-${currentIndex}-${currentQuestion.c}`).classList.add('correct');
+    if (!isCorrect) {
+        document.getElementById(`label-${currentIndex}-${selectedOptionIndex}`).classList.add('incorrect');
+    } else {
+        userScore++;
+    }
+    
+    const expBox = document.getElementById(`exp-${currentIndex}`);
+    expBox.className = isCorrect ? "explanation-box correct-style" : "explanation-box incorrect-style";
+    document.getElementById(`eng-${currentIndex}`).innerText = currentQuestion.eng;
+    document.getElementById(`amh-${currentIndex}`).innerText = currentQuestion.amh;
+    expBox.style.display = "block";
+    
+    const btn = document.getElementById('action-btn');
+    btn.innerText = "Next Question";
+    btn.className = "btn-next";
+}
+
+function goToNext() {
+    document.getElementById(`q-box-${currentIndex}`).classList.remove('active');
+    currentIndex++;
+    answered = false;
+    selectedOptionIndex = null;
+    
+    if (currentIndex < quizData.length) {
+        document.getElementById(`q-box-${currentIndex}`).classList.add('active');
+        document.getElementById('idx-txt').innerText = currentIndex + 1;
+        const btn = document.getElementById('action-btn');
+        btn.innerText = "Submit Answer";
+        btn.className = "";
+        updateHeader();
+    } else {
+        document.getElementById('quiz-ui').style.display = 'none';
+        document.getElementById('score-screen').style.display = 'block';
+        document.getElementById('final-score').innerText = userScore;
+        
+        let msg = "";
+        if(userScore >= 12) msg = "Fantastic outcome! You have totally conquered all difficulty tiers in LO3. / እጅግ በጣም ግሩም ውጤት ነው! ሁሉንም የLO3 አስቸጋሪ ጥያቄዎች አልፈዋል።";
+        else if(userScore >= 8) msg = "Good resilience! Focus more on the HARD tier answers to eliminate gaps. / ጥሩ ሙከራ ነው፤ ከባድ የሚባሉትን ጥያቄዎች ማብራሪያ ደግመው ያንብቡ።";
+        else msg = "Needs more review. Prioritize understanding definitions via the Amharic text. / ገና ብዙ መከለስ ያስፈልግዎታል፤ የአማርኛ ማስታወሻዎቹን በደንብ ያጥኑ።";
+        document.getElementById('final-msg').innerText = msg;
+    }
+}
+
+function updateHeader() {
+    const currentQuestion = quizData[currentIndex];
+    const badge = document.getElementById('diff-badge');
+    badge.innerText = currentQuestion.level;
+    badge.className = badgeClasses[currentQuestion.level];
+}
+
+window.onload = initQuiz;
+</script>
+
+</body>
+</html>
